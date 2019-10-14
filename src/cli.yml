@@ -1,0 +1,13 @@
+name: dotplugs
+version: "0.1"
+author: yutakatay (https://github.com/dotplugs)
+about: plugin manager for dotfiles
+args:
+    - verbose:
+        short: v
+        multiple: true
+        help: Sets the level of verbosity
+subcommands:
+    - check:
+        about: check for updates
+        version: "1.3"
