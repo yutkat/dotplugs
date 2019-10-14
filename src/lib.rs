@@ -15,7 +15,8 @@ pub fn run() -> Result<(), Error> {
 pub fn check() -> Result<(), Error> {
     let repos = vim_plug::VimPlug::get_repositories()?;
     let statues = git::get_status(&repos)?;
-    println!("{:?}", statues);
+    let j = serde_json::to_string(&statues)?;
+    println!("{}", j);
     Ok(())
 }
 

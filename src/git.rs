@@ -2,14 +2,15 @@ use crate::repository::Repositories;
 use failure::Error;
 use log::debug;
 use log::warn;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum UpdateStatus {
     Required,
     Already,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GitStatus {
     pub uri: String,
     pub dir: String,
