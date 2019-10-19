@@ -10,4 +10,9 @@ args:
 subcommands:
     - check:
         about: check for updates
-        version: "1.3"
+        version: "0.1"
+        args:
+            - json:
+                long: json
+                short: j
+                help: output json
