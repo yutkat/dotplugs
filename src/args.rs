@@ -1,12 +1,10 @@
 use clap::{load_yaml, App};
-use yaml_rust::Yaml;
 use failure::Error;
 use lazy_static::lazy_static;
+use yaml_rust::Yaml;
 
 lazy_static! {
-    static ref APP_YAML: Yaml = {
-        load_yaml!("cli.yml").clone()
-    };
+    static ref APP_YAML: Yaml = { load_yaml!("cli.yml").clone() };
     static ref ARGS_MATCHES: clap::ArgMatches<'static> = {
         let app = App::from_yaml(&APP_YAML);
         app.get_matches()

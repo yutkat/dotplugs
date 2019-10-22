@@ -1,5 +1,5 @@
-use colored::Colorize;
 use crate::git::{GitStatus, UpdateStatus};
+use colored::Colorize;
 
 pub fn display(statues: &Vec<GitStatus>) {
     for s in statues {
@@ -9,5 +9,3 @@ pub fn display(statues: &Vec<GitStatus>) {
         println!("{} {}", s.uri, format!("{:?}", s.status).red());
     }
 }
-
-
