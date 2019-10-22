@@ -4,6 +4,7 @@ author: yutakatay (https://github.com/dotplugs)
 about: plugin manager for dotfiles
 args:
     - verbose:
+        long: verbose
         short: v
         multiple: true
         help: Sets the level of verbosity

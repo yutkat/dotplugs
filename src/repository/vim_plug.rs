@@ -12,10 +12,11 @@ pub struct VimPlug;
 
 impl CanReposit for VimPlug {
     fn get_repositories() -> Result<Repositories, Error> {
-        let path = VimPlug::output_file("~/.vimrc")?;
-        if !VimPlug::exists_plugin_manager(&path)? {
+        let vimrc = "~/.vimrc";
+        if !VimPlug::exists_plugin_manager(&vimrc)? {
             return Ok(vec![]);
         }
+        let path = VimPlug::output_plugins_file(&vimrc)?;
         VimPlug::get_repositories_from_path(path)
     }
 }
@@ -29,7 +30,7 @@ impl VimPlug {
         Ok(status.success())
     }
 
-    fn output_file<P: AsRef<Path>>(vimrc: P) -> Result<PathBuf, Error> {
+    fn output_plugins_file<P: AsRef<Path>>(vimrc: P) -> Result<PathBuf, Error> {
         let cmd = format!(r##"nvim -es -u {} +"redir! > /tmp/vim_plug.json | echo substitute(string(values(map(copy(g:plugs), {{index, val -> {{'uri': val['uri'], 'dir': val['dir']}}}}))), \"'\", '\"', 'g') | redir END""##, vimrc.as_ref().to_str().ok_or(format_err!("convert error"))?);
         log::debug!("output vim-plug list: {}", cmd);
         let status = Command::new("sh").arg("-c").arg(cmd).status()?;
@@ -79,7 +80,7 @@ mod tests {
         init();
         let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let vimrc = format!("{}/tests/data/vimrc", project_root.to_str().unwrap());
-        let path = VimPlug::output_file(vimrc)?;
+        let path = VimPlug::output_plugins_file(vimrc)?;
         assert!(path.exists());
         Ok(())
     }

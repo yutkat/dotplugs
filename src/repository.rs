@@ -1,4 +1,5 @@
 pub mod vim_plug;
+pub mod zplugin;
 
 use failure::Error;
 use serde::Deserialize;
