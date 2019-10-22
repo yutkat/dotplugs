@@ -15,4 +15,5 @@ git2 = "0.8"
 failure = "0.1.5"
 yaml-rust = "0.3.5"
 lazy_static = "1.4"
+colored = "1.8"
 
