@@ -23,7 +23,13 @@ impl CanReposit for VimPlug {
 
 impl VimPlug {
     fn exists_plugin_manager<P: AsRef<Path>>(vimrc: P) -> Result<bool, Error> {
-        let cmd = format!(r##"nvim -es -u {} +"if exists(':PlugInstall') | qall | else | cq | endif""##, vimrc.as_ref().to_str().ok_or(format_err!("convert error"))?);
+        let cmd = format!(
+            r##"nvim -es -u {} +"if exists(':PlugInstall') | qall | else | cq | endif""##,
+            vimrc
+                .as_ref()
+                .to_str()
+                .ok_or(format_err!("convert error"))?
+        );
         log::debug!("output vim-plug list: {}", cmd);
         let status = Command::new("sh").arg("-c").arg(cmd).status()?;
         log::debug!("process exited with: {}", status);

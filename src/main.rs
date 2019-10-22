@@ -1,8 +1,8 @@
 mod args;
 
 use dotplugs;
-use failure::Error;
 use failure::format_err;
+use failure::Error;
 
 fn main() -> Result<(), Error> {
     let matches = args::load()?;
@@ -12,8 +12,10 @@ fn main() -> Result<(), Error> {
                 return dotplugs::check_output_json();
             }
             dotplugs::check()?
-        },
-        _ => { return Err(format_err!("subcommand not found")); },
+        }
+        _ => {
+            return Err(format_err!("subcommand not found"));
+        }
     }
     Ok(())
 }

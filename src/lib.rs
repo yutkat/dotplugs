@@ -1,6 +1,6 @@
+mod display;
 mod git;
 mod repository;
-mod display;
 mod update_checker;
 
 use crate::repository::vim_plug;

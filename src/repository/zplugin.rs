@@ -28,13 +28,18 @@ impl Zplugin {
     }
 
     fn get_url() -> Result<Vec<String>, Error> {
-        let cmd = format!(r##"source ~/.zshrc && zplugin list | cut -d' ' -f1 | sed 's/\x1b\[[0-9;]*m//g'"##);
+        let cmd = format!(
+            r##"source ~/.zshrc && zplugin list | cut -d' ' -f1 | sed 's/\x1b\[[0-9;]*m//g'"##
+        );
         log::debug!("output zplugin list: {}", cmd);
         let output = Command::new("zsh").arg("-c").arg(cmd).output()?;
         log::debug!("process exited with: {}", output.status);
         let stdout = output.stdout;
         let urls = String::from_utf8(stdout)?;
-        let urls_v = urls.split_ascii_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
+        let urls_v = urls
+            .split_ascii_whitespace()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
         println!("{:#?}", urls_v);
         Ok(urls_v)
     }
@@ -53,7 +58,10 @@ impl Zplugin {
         Ok(dir)
     }
 
-    fn create_repositories<S: AsRef<str>, T: AsRef<str>>(urls: &Vec<S>, dir: &T) -> Result<Repositories, Error> {
+    fn create_repositories<S: AsRef<str>, T: AsRef<str>>(
+        urls: &Vec<S>,
+        dir: &T,
+    ) -> Result<Repositories, Error> {
         let mut r = vec![];
         for u in urls {
             let repo = Repository {
@@ -82,4 +90,3 @@ mod tests {
         Ok(())
     }
 }
-
