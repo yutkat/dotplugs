@@ -1,5 +1,6 @@
 mod git;
 mod repository;
+mod display;
 
 use crate::repository::vim_plug;
 use crate::repository::CanReposit;
@@ -8,14 +9,14 @@ use failure::Error;
 pub fn run() -> Result<(), Error> {
     let repos = vim_plug::VimPlug::get_repositories()?;
     let statues = git::get_status(&repos)?;
-    println!("{:?}", statues);
+    println!("{:#?}", statues);
     Ok(())
 }
 
 pub fn check() -> Result<(), Error> {
     let repos = vim_plug::VimPlug::get_repositories()?;
     let statues = git::get_status(&repos)?;
-    println!("{:?}", statues);
+    display::display(&statues);
     Ok(())
 }
 
