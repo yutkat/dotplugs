@@ -40,7 +40,6 @@ impl Zplugin {
             .split_ascii_whitespace()
             .map(|s| s.to_string())
             .collect::<Vec<String>>();
-        println!("{:#?}", urls_v);
         Ok(urls_v)
     }
 

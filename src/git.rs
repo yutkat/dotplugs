@@ -1,4 +1,5 @@
 use crate::repository::Repositories;
+use failure::format_err;
 use failure::Error;
 use log::debug;
 use log::warn;
@@ -37,6 +38,11 @@ pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
 }
 
 fn get_update_status(repo: &git2::Repository) -> Result<UpdateStatus, Error> {
+    let mut branches = repo.branches(None)?;
+    let branch = branches
+        .find(|b| b.as_ref().unwrap().0.is_head())
+        .ok_or(format_err!("There is no branch corresponding to HEAD"))??;
+    println!("{:#?}", branch.0.name());
     debug!(
         "local_hash: {:?} remote_hash: {:?}",
         repo.revparse_single("HEAD")?.id(),
