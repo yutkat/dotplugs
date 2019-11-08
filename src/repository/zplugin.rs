@@ -79,7 +79,9 @@ mod tests {
 
     fn init() {
         std::env::set_var("RUST_LOG", "debug");
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _ = pretty_env_logger::formatted_builder()
+            .is_test(true)
+            .try_init();
     }
 
     #[test]
