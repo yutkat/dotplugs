@@ -4,7 +4,7 @@ pub mod zplugin;
 use failure::Error;
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Repository {
     pub uri: String,
     pub dir: String,

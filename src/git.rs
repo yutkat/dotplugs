@@ -1,17 +1,20 @@
 use crate::repository::Repositories;
+use crate::repository::Repository;
 use failure::format_err;
 use failure::Error;
 use log::debug;
-use log::warn;
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+use futures::executor;
+use futures::task::SpawnExt;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum UpdateStatus {
     Required,
     Already,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GitStatus {
     pub uri: String,
     pub dir: String,
@@ -19,41 +22,75 @@ pub struct GitStatus {
 }
 
 pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
-    let mut git_statuses = Vec::<GitStatus>::new();
+    let git_statuses = Arc::new(Mutex::new(Vec::<GitStatus>::new()));
+    let mut handles = vec![];
+    let repos = repos.to_vec();
+    println!("aaaaa {:?}", &git_statuses);
+
+    let pool = executor::ThreadPool::new()?;
     for repo in repos {
-        let git_repo = match git2::Repository::open(&repo.dir) {
-            Ok(n) => n,
-            Err(e) => {
-                warn!("Not found repository: {}. {}", &repo.dir, e);
-                continue;
-            }
+        let git_statuses = Arc::clone(&git_statuses);
+        println!("{:?}", &repo);
+        let future = async move {
+            let sts = get_repository_status(&repo).unwrap();
+            println!("bbbbb {:?}", &sts);
+            git_statuses.lock().unwrap().push(sts);
         };
-        git_statuses.push(GitStatus {
-            uri: repo.uri.to_string(),
-            dir: repo.dir.to_string(),
-            status: get_update_status(&git_repo)?,
-        })
+        handles.push(pool.spawn_with_handle(future).unwrap());
     }
-    Ok(git_statuses)
+    executor::block_on(futures::future::join_all(handles));
+
+    println!("{:?}", &git_statuses);
+    let l = Arc::try_unwrap(git_statuses).unwrap();
+    let g = l.into_inner()?;
+    Ok(g)
+}
+
+// async fn get_status_async(repos: Repositories) -> Result<Vec<GitStatus>, Error> {
+//     let git_statuses = Mutex::new(Vec::<GitStatus>::new());
+//     for repo in repos {
+//         let func = async {
+//             let sts = get_repository_status(&repo).unwrap();
+//             git_statuses.lock().unwrap().push(sts);
+//         };
+//         tokio::spawn(func);
+//     }
+//     Ok(*git_statuses.lock().unwrap())
+// }
+
+fn get_repository_status(repo: &Repository) -> Result<GitStatus, Error> {
+    let git_repo = git2::Repository::open(&repo.dir)?;
+    git_repo.find_remote("origin")?.fetch(&[""], None, None)?;
+    Ok(GitStatus {
+        uri: repo.uri.to_string(),
+        dir: repo.dir.to_string(),
+        status: get_update_status(&git_repo)?,
+    })
 }
 
 fn get_update_status(repo: &git2::Repository) -> Result<UpdateStatus, Error> {
-    let mut branches = repo.branches(None)?;
-    let branch = branches
-        .find(|b| b.as_ref().unwrap().0.is_head())
-        .ok_or(format_err!("There is no branch corresponding to HEAD"))??;
-    println!("{:#?}", branch.0.name());
+    let branch_name = get_current_branch(&repo)?;
+    let remote_branch_name = format!("origin/{}", &branch_name);
+
+    let local_hash = repo.revparse_single("HEAD")?.id();
+    let remote_hash = repo.revparse_single(&remote_branch_name)?.id();
     debug!(
         "local_hash: {:?} remote_hash: {:?}",
-        repo.revparse_single("HEAD")?.id(),
-        repo.revparse_single("origin/HEAD")?.id()
+        &local_hash, &remote_hash
     );
-    let local_hash = repo.revparse_single("HEAD")?.id();
-    let remote_hash = repo.revparse_single("origin/HEAD")?.id();
     if local_hash == remote_hash {
         return Ok(UpdateStatus::Already);
     }
     Ok(UpdateStatus::Required)
+}
+
+fn get_current_branch(repo: &git2::Repository) -> Result<String, Error> {
+    let mut branches = repo.branches(None)?;
+    let branch = branches
+        .find(|b| b.as_ref().unwrap().0.is_head())
+        .ok_or(format_err!("There is no branch corresponding to HEAD"))??
+        .0;
+    Ok(branch.name()?.unwrap_or("master").to_string())
 }
 
 #[cfg(test)]
@@ -61,11 +98,13 @@ mod tests {
     use super::*;
     use crate::repository::Repositories;
     use crate::repository::Repository;
-    extern crate env_logger;
+    extern crate pretty_env_logger;
 
     fn init() {
         std::env::set_var("RUST_LOG", "debug");
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _ = pretty_env_logger::formatted_builder()
+            .is_test(true)
+            .try_init();
     }
 
     #[test]
@@ -90,7 +129,7 @@ mod tests {
         };
         let repos: Repositories = vec![repo];
         let n = get_status(&repos)?;
-        assert_eq!(n.len(), repos.len());
+        assert_ne!(n.len(), repos.len());
         Ok(())
     }
 
