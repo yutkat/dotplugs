@@ -23,40 +23,23 @@ pub struct GitStatus {
 
 pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     let git_statuses = Arc::new(Mutex::new(Vec::<GitStatus>::new()));
-    let mut handles = vec![];
-    let repos = repos.to_vec();
-    println!("aaaaa {:?}", &git_statuses);
-
     let pool = executor::ThreadPool::new()?;
-    for repo in repos {
+    let mut handles = vec![];
+
+    for repo in repos.clone() {
         let git_statuses = Arc::clone(&git_statuses);
-        println!("{:?}", &repo);
+        // println!("{:?}", &repo);
         let future = async move {
             let sts = get_repository_status(&repo).unwrap();
-            println!("bbbbb {:?}", &sts);
+            // println!("{:?}", &sts);
             git_statuses.lock().unwrap().push(sts);
         };
         handles.push(pool.spawn_with_handle(future).unwrap());
     }
     executor::block_on(futures::future::join_all(handles));
 
-    println!("{:?}", &git_statuses);
-    let l = Arc::try_unwrap(git_statuses).unwrap();
-    let g = l.into_inner()?;
-    Ok(g)
+    Ok(Arc::try_unwrap(git_statuses).unwrap().into_inner()?)
 }
-
-// async fn get_status_async(repos: Repositories) -> Result<Vec<GitStatus>, Error> {
-//     let git_statuses = Mutex::new(Vec::<GitStatus>::new());
-//     for repo in repos {
-//         let func = async {
-//             let sts = get_repository_status(&repo).unwrap();
-//             git_statuses.lock().unwrap().push(sts);
-//         };
-//         tokio::spawn(func);
-//     }
-//     Ok(*git_statuses.lock().unwrap())
-// }
 
 fn get_repository_status(repo: &Repository) -> Result<GitStatus, Error> {
     let git_repo = git2::Repository::open(&repo.dir)?;
