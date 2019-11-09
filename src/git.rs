@@ -2,7 +2,7 @@ use crate::repository::Repositories;
 use crate::repository::Repository;
 use failure::format_err;
 use failure::Error;
-use log::debug;
+use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use futures::executor;
@@ -24,21 +24,22 @@ pub struct GitStatus {
 pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     let git_statuses = Arc::new(Mutex::new(Vec::<GitStatus>::new()));
     let pool = executor::ThreadPool::new()?;
-    let mut handles = vec![];
+    let mut futures = vec![];
 
     for repo in repos.clone() {
         let git_statuses = Arc::clone(&git_statuses);
-        // println!("{:?}", &repo);
         let future = async move {
-            let sts = get_repository_status(&repo).unwrap();
-            // println!("{:?}", &sts);
-            git_statuses.lock().unwrap().push(sts);
+            match get_repository_status(&repo) {
+                Ok(sts) => git_statuses.lock().unwrap().push(sts),
+                Err(e) => warn!("{:?}", e),
+            }
         };
-        handles.push(pool.spawn_with_handle(future).unwrap());
+        futures.push(pool.spawn_with_handle(future)?);
     }
-    executor::block_on(futures::future::join_all(handles));
-
-    Ok(Arc::try_unwrap(git_statuses).unwrap().into_inner()?)
+    executor::block_on(futures::future::join_all(futures));
+    let g = Arc::try_unwrap(git_statuses)
+        .map_err(|e| format_err!("Async Error {:?}", e))?;
+    Ok(g.into_inner()?)
 }
 
 fn get_repository_status(repo: &Repository) -> Result<GitStatus, Error> {
