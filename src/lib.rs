@@ -5,6 +5,7 @@ mod update_checker;
 
 use crate::repository::vim_plug;
 use crate::repository::CanReposit;
+use env_logger::Target;
 use failure::Error;
 
 pub fn run() -> Result<(), Error> {
@@ -31,7 +32,11 @@ pub fn check_output_json() -> Result<(), Error> {
 }
 
 fn init_logger() {
-    pretty_env_logger::init()
+    let mut builder = pretty_env_logger::formatted_builder();
+    if let Ok(s) = ::std::env::var("RUST_LOG") {
+        builder.parse_filters(&s);
+    }
+    builder.target(Target::Stderr).init()
 }
 
 #[cfg(test)]
