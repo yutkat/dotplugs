@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use futures::executor;
 use futures::task::SpawnExt;
+use std::io::Write;
+use termion::clear;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum UpdateStatus {
@@ -29,6 +31,8 @@ pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     for repo in repos.clone() {
         let git_statuses = Arc::clone(&git_statuses);
         let future = async move {
+            eprint!("\r{}Checking: {}", clear::CurrentLine, repo.uri);
+            std::io::stdout().flush().unwrap();
             match get_repository_status(&repo) {
                 Ok(sts) => git_statuses.lock().unwrap().push(sts),
                 Err(e) => warn!("{:?}", e),
