@@ -24,6 +24,26 @@ pub struct GitStatus {
 }
 
 pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
+    get_status_async(repos)
+}
+
+#[allow(dead_code)]
+fn get_status_sync(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
+    let mut git_statuses = Vec::<GitStatus>::new();
+
+    for repo in repos.clone() {
+        eprint!("\r{}Checking: {}", clear::CurrentLine, repo.uri);
+        std::io::stdout().flush().unwrap();
+        match get_repository_status(&repo) {
+            Ok(sts) => git_statuses.push(sts),
+            Err(e) => warn!("{:?}", e),
+        }
+    }
+    eprint!("\r{}", clear::CurrentLine);
+    Ok(git_statuses)
+}
+
+fn get_status_async(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     let git_statuses = Arc::new(Mutex::new(Vec::<GitStatus>::new()));
     let pool = executor::ThreadPool::new()?;
     let mut futures = vec![];
@@ -43,6 +63,7 @@ pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     executor::block_on(futures::future::join_all(futures));
     let g = Arc::try_unwrap(git_statuses)
         .map_err(|e| format_err!("Async Error {:?}", e))?;
+    eprint!("\r{}", clear::CurrentLine);
     Ok(g.into_inner()?)
 }
 
