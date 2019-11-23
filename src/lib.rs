@@ -3,18 +3,8 @@ mod git;
 mod repository;
 mod update_checker;
 
-use crate::repository::vim_plug;
-use crate::repository::CanReposit;
 use env_logger::Target;
 use failure::Error;
-
-pub fn run() -> Result<(), Error> {
-    init_logger();
-    let repos = vim_plug::VimPlug::get_repositories()?;
-    let statues = git::get_status(&repos)?;
-    println!("{:#?}", statues);
-    Ok(())
-}
 
 pub fn check() -> Result<(), Error> {
     init_logger();
@@ -24,9 +14,7 @@ pub fn check() -> Result<(), Error> {
 
 pub fn check_output_json() -> Result<(), Error> {
     init_logger();
-    let repos = vim_plug::VimPlug::get_repositories()?;
-    let statues = git::get_status(&repos)?;
-    let j = serde_json::to_string(&statues)?;
+    let j = update_checker::output_json()?;
     println!("{}", j);
     Ok(())
 }
@@ -55,7 +43,7 @@ mod tests {
     #[test]
     fn run_normal() {
         init();
-        match run() {
+        match check() {
             Ok(_) => assert!(true),
             Err(_) => assert!(false),
         }
