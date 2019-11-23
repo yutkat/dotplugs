@@ -12,6 +12,12 @@ pub fn check() -> Result<(), Error> {
     Ok(())
 }
 
+pub fn update() -> Result<(), Error> {
+    init_logger();
+    subcommand::updater::update()?;
+    Ok(())
+}
+
 pub fn check_output_json() -> Result<(), Error> {
     init_logger();
     let j = subcommand::checker::output_json()?;
