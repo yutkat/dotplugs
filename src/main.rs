@@ -13,6 +13,12 @@ fn main() -> Result<(), Error> {
             }
             dotplugs::check()?
         }
+        ("update", Some(sub_m)) => {
+            if sub_m.is_present("yes") {
+                // Todo add a force function
+            }
+            dotplugs::update()?
+        }
         _ => {
             return Err(format_err!("subcommand not found"));
         }
