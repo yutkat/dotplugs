@@ -12,7 +12,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 clap =  {version = "2", features = ["yaml"]}
 url = "1.7"
-git2 = "0.8"
+git2 = "0.10.1"
 failure = "0.1.5"
 yaml-rust = "0.3.5"
 lazy_static = "1.4"

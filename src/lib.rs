@@ -35,6 +35,8 @@ fn init_logger() {
     let mut builder = pretty_env_logger::formatted_builder();
     if let Ok(s) = ::std::env::var("RUST_LOG") {
         builder.parse_filters(&s);
+    } else {
+        builder.parse_filters("info");
     }
     builder.target(Target::Stderr).init()
 }
@@ -44,9 +46,9 @@ mod tests {
     use super::*;
 
     fn init() {
-        std::env::set_var("RUST_LOG", "debug");
         let _ = pretty_env_logger::formatted_builder()
             .is_test(true)
+            .parse_filters("DEBUG")
             .try_init();
     }
 

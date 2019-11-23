@@ -78,9 +78,9 @@ mod tests {
     use super::*;
 
     fn init() {
-        std::env::set_var("RUST_LOG", "debug");
         let _ = pretty_env_logger::formatted_builder()
             .is_test(true)
+            .parse_filters("DEBUG")
             .try_init();
     }
 
