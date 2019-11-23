@@ -17,3 +17,11 @@ subcommands:
                 long: json
                 short: j
                 help: output json
+    - update:
+        about: execute update
+        version: "0.1"
+        args:
+            - yes:
+                long: yes
+                short: y
+                help: no confirm

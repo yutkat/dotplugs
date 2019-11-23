@@ -1,20 +1,20 @@
 mod display;
 mod git;
 mod repository;
-mod update_checker;
+mod subcommand;
 
 use env_logger::Target;
 use failure::Error;
 
 pub fn check() -> Result<(), Error> {
     init_logger();
-    update_checker::check()?;
+    subcommand::checker::check()?;
     Ok(())
 }
 
 pub fn check_output_json() -> Result<(), Error> {
     init_logger();
-    let j = update_checker::output_json()?;
+    let j = subcommand::checker::output_json()?;
     println!("{}", j);
     Ok(())
 }
