@@ -22,3 +22,10 @@ fn display_zplugin() -> Result<(), Error> {
     crate::display::display(&statues);
     Ok(())
 }
+
+pub fn output_json() -> Result<String, Error> {
+    let repos = vim_plug::VimPlug::get_repositories()?;
+    let statues = crate::git::get_status(&repos)?;
+    let j = serde_json::to_string(&statues)?;
+    Ok(j)
+}
