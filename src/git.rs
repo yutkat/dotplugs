@@ -18,11 +18,20 @@ pub enum UpdateStatus {
 pub struct GitStatus {
     pub uri: String,
     pub dir: String,
+    pub branch: String,
     pub status: UpdateStatus,
 }
 
 pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     status::get_status_async(repos)
+}
+
+pub fn update(repos: &Repositories) -> Result<(), Error> {
+    update::update_repositories(repos)
+}
+
+pub fn update_using_cached_status(statuses: &Vec<GitStatus>) -> Result<(), Error> {
+    update::update_repositorie_using_cached_statuss(statuses)
 }
 
 #[cfg(test)]
