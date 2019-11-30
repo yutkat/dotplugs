@@ -18,6 +18,12 @@ pub fn update() -> Result<(), Error> {
     Ok(())
 }
 
+pub fn update_with_confirm() -> Result<(), Error> {
+    init_logger();
+    subcommand::updater::update_after_checking()?;
+    Ok(())
+}
+
 pub fn check_output_json() -> Result<(), Error> {
     init_logger();
     let j = subcommand::checker::output_json()?;

@@ -61,6 +61,7 @@ fn get_status_after_fetch(repo: &Repository) -> Result<GitStatus, Error> {
             return Ok(GitStatus {
                 uri: repo.uri.to_string(),
                 dir: repo.dir.to_string(),
+                branch: "master".to_string(),
                 status: UpdateStatus::NotGitRepository,
             })
         }
@@ -69,6 +70,7 @@ fn get_status_after_fetch(repo: &Repository) -> Result<GitStatus, Error> {
     Ok(GitStatus {
         uri: repo.uri.to_string(),
         dir: repo.dir.to_string(),
+        branch: branch::get_current_branch(&git_repo)?,
         status: get_update_status(&git_repo)?,
     })
 }

@@ -16,8 +16,9 @@ fn main() -> Result<(), Error> {
         ("update", Some(sub_m)) => {
             if sub_m.is_present("yes") {
                 // Todo add a force function
+                dotplugs::update()?
             }
-            dotplugs::update()?
+            dotplugs::update_with_confirm()?
         }
         _ => {
             return Err(format_err!("subcommand not found"));
