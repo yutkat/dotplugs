@@ -1,4 +1,5 @@
 use crate::git::GitStatus;
+use crate::git::UpdateStatus;
 use crate::repository::Repositories;
 use crate::repository::Repository;
 use failure::Error;
@@ -19,7 +20,9 @@ pub fn update_repositories(repos: &Repositories) -> Result<(), Error> {
 
 pub fn update_repositorie_using_cached_statuss(statuses: &Vec<GitStatus>) -> Result<(), Error> {
     for status in statuses {
-        update_repository_by_command(&status.dir)?;
+        if status.status == UpdateStatus::Required {
+            update_repository_by_command(&status.dir)?;
+        }
     }
     Ok(())
 }
