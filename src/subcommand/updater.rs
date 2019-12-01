@@ -35,9 +35,11 @@ fn user_want_to_continue() -> Result<(bool), Error> {
     std::io::stdin().read_line(&mut answer)?;
     let len = answer.trim_end_matches(&['\r', '\n'][..]).len();
     answer.truncate(len);
-    if answer == "Y" || answer == "" {
+    if answer == "Y" || answer == "y" || answer == "" {
         return Ok(true);
     }
+
+    println!("Canceled");
     return Ok(false);
 }
 
