@@ -56,8 +56,9 @@ mod tests {
             dir: "/tmp/aaa".to_string(),
         };
         let repos: Repositories = vec![repo];
+        println!("{:?}", repos);
         let n = get_status(&repos)?;
-        assert_ne!(n.len(), repos.len());
+        assert_eq!(n[0].status, UpdateStatus::NotGitRepository);
         Ok(())
     }
 
