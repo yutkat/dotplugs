@@ -49,13 +49,13 @@ mod tests {
     }
 
     #[test]
-    fn get_repository_status_ok() -> Result<(), Error> {
+    fn update_repository_ok() -> Result<(), Error> {
         init();
         let repo = Repository {
             uri: "https://github.com/fatih/vim-go.git".to_string(),
             dir: "/home/osft/dotfiles/.vim/plugged/vim-go".to_string(),
         };
-        fetch_repository(&repo)?;
+        update_repository(&repo)?;
         Ok(())
     }
 }
