@@ -23,13 +23,13 @@ pub fn update_after_checking() -> Result<(), Error> {
         return Ok(());
     }
 
-    if user_want_to_continue()? {
+    if is_continued_by_user()? {
         git::update_using_cached_status(&statuses)?;
     }
     Ok(())
 }
 
-fn user_want_to_continue() -> Result<(bool), Error> {
+fn is_continued_by_user() -> Result<(bool), Error> {
     println!("Do you want to continue? [Y/n]");
     let mut answer = String::new();
     std::io::stdin().read_line(&mut answer)?;
