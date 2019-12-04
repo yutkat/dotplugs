@@ -3,8 +3,6 @@ mod fetch;
 mod status;
 mod update;
 
-use crate::repository::Repositories;
-use failure::Error;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -22,23 +20,16 @@ pub struct GitStatus {
     pub status: UpdateStatus,
 }
 
-pub fn get_status(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
-    status::get_status_async(repos)
-}
-
-pub fn update(repos: &Repositories) -> Result<(), Error> {
-    update::update_repositories(repos)
-}
-
-pub fn update_using_cached_status(statuses: &Vec<GitStatus>) -> Result<(), Error> {
-    update::update_repositorie_using_cached_statuss(statuses)
-}
+pub use status::get_status_async as get_status;
+pub use update::update_repositorie_using_cached_statuss as update_using_cached_status;
+pub use update::update_repositories as update;
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::repository::Repositories;
     use crate::repository::Repository;
+    use failure::Error;
     extern crate pretty_env_logger;
 
     fn init() {
