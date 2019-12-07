@@ -7,7 +7,6 @@ pub fn fetch_repository(repo: &Repository) -> Result<(), Error> {
     // libgit2 does not implement shallow fetch
     // https://github.com/libgit2/libgit2/issues/3058
     fetch_repository_by_command(repo)?;
-
     Ok(())
 }
 
@@ -38,6 +37,7 @@ fn fetch_repository_by_command(repo: &Repository) -> Result<(), Error> {
 mod tests {
     use super::*;
     use crate::repository::Repository;
+    use failure::format_err;
     extern crate pretty_env_logger;
 
     fn init() {
@@ -48,13 +48,53 @@ mod tests {
     }
 
     #[test]
-    fn get_repository_status_ok() -> Result<(), Error> {
+    fn fetch_repository_status_ok() -> Result<(), Error> {
+        use boolinator::Boolinator;
         init();
+        std::fs::remove_dir_all("/tmp/Spoon-Knife").unwrap_or(());
+
+        let repo_url = "https://github.com/octocat/Spoon-Knife";
+        std::process::Command::new("git")
+            .args(&["clone", "--depth=3", repo_url])
+            .current_dir("/tmp")
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
+        std::process::Command::new("git")
+            .args(&["reset", "--hard", "HEAD^^"])
+            .current_dir("/tmp/Spoon-Knife")
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
+        std::process::Command::new("git")
+            .args(&[
+                "update-ref",
+                "refs/remotes/origin/master",
+                "refs/remotes/origin/master~2",
+            ])
+            .current_dir("/tmp/Spoon-Knife")
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
+        let sha1_before = std::process::Command::new("git")
+            .args(&["rev-parse", "origin/HEAD"])
+            .current_dir("/tmp/Spoon-Knife")
+            .output()?
+            .stdout;
         let repo = Repository {
-            uri: "https://github.com/fatih/vim-go.git".to_string(),
-            dir: "/home/osft/dotfiles/.vim/plugged/vim-go".to_string(),
+            uri: "https://github.com/octocat/Spoon-Knife".to_string(),
+            dir: "/tmp/Spoon-Knife".to_string(),
         };
         fetch_repository(&repo)?;
+        let sha1_after = std::process::Command::new("git")
+            .args(&["rev-parse", "origin/HEAD"])
+            .current_dir("/tmp/Spoon-Knife")
+            .output()?
+            .stdout;
+        assert_ne!(sha1_before, sha1_after);
         Ok(())
     }
 }

@@ -14,7 +14,6 @@ pub fn get_current_branch(repo: &git2::Repository) -> Result<String, Error> {
 mod tests {
     use super::*;
     use crate::repository::Repository;
-    extern crate pretty_env_logger;
 
     fn init() {
         let _ = pretty_env_logger::formatted_builder()
