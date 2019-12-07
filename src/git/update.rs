@@ -37,6 +37,7 @@ fn update_repository_by_command<S: Into<String>>(dir: S) -> Result<Child, Error>
     let child = std::process::Command::new("git")
         .args(&["pull", "--no-stat"])
         .current_dir(dir.into())
+        .stdout(std::process::Stdio::null())
         .spawn()?;
     Ok(child)
 }
@@ -45,7 +46,6 @@ fn update_repository_by_command<S: Into<String>>(dir: S) -> Result<Child, Error>
 mod tests {
     use super::*;
     use crate::repository::Repository;
-    extern crate pretty_env_logger;
 
     fn init() {
         let _ = pretty_env_logger::formatted_builder()
