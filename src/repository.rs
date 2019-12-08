@@ -1,3 +1,4 @@
+pub mod tpm;
 pub mod vim_plug;
 pub mod zplugin;
 
