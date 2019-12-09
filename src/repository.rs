@@ -1,6 +1,6 @@
-pub mod tpm;
-pub mod vim_plug;
-pub mod zplugin;
+mod tpm;
+mod vim_plug;
+mod zplugin;
 
 use failure::Error;
 use serde::Deserialize;
@@ -13,8 +13,16 @@ pub struct Repository {
 
 pub type Repositories = Vec<Repository>;
 
-pub trait CanReposit {
+trait CanReposit {
     fn get_repositories() -> Result<Repositories, Error>;
+}
+
+pub fn new() -> Result<Repositories, Error> {
+    let mut repos = vec![];
+    repos.extend(vim_plug::VimPlug::get_repositories()?);
+    repos.extend(zplugin::Zplugin::get_repositories()?);
+    repos.extend(tpm::Tpm::get_repositories()?);
+    return Ok(repos);
 }
 
 #[cfg(test)]

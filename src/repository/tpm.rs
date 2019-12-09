@@ -24,7 +24,11 @@ impl Tpm {
     fn is_running_tmux() -> Result<bool, Error> {
         let cmd = format!(r##"tmux info"##);
         log::debug!("exists check: {}", cmd);
-        let status = Command::new("sh").arg("-c").arg(cmd).status()?;
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg(cmd)
+            .stdout(std::process::Stdio::null())
+            .status()?;
         log::debug!("process exited with: {}", status);
         Ok(status.success())
     }
@@ -50,7 +54,9 @@ impl Tpm {
         let output = Command::new("sh").arg("-c").arg(cmd).output()?;
         log::debug!("process exited with: {}", output.status);
         let stdout = output.stdout;
-        let url = String::from_utf8(stdout)?;
+        let mut url = String::from_utf8(stdout)?;
+        let len = url.trim_end_matches(&['\r', '\n'][..]).len();
+        url.truncate(len);
         Ok(url)
     }
 
