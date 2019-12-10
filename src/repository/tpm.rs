@@ -34,7 +34,10 @@ impl Tpm {
     }
 
     fn exists_plugin_manager() -> Result<bool, Error> {
-        let path = std::env::var("TMUX_PLUGIN_MANAGER_PATH")?;
+        let path = match std::env::var("TMUX_PLUGIN_MANAGER_PATH") {
+            Ok(n) => n,
+            Err(_) => return Ok(false),
+        };
         if path.is_empty() {
             return Ok(false);
         }
