@@ -38,7 +38,6 @@ mod tests {
     use super::*;
     use crate::repository::Repository;
     use failure::format_err;
-    extern crate pretty_env_logger;
 
     fn init() {
         let _ = pretty_env_logger::formatted_builder()
@@ -48,14 +47,19 @@ mod tests {
     }
 
     #[test]
-    fn fetch_repository_status_ok() -> Result<(), Error> {
+    fn fetch_repository_status_for_shallow_ok() -> Result<(), Error> {
         use boolinator::Boolinator;
+        use rand::Rng;
         init();
-        std::fs::remove_dir_all("/tmp/Spoon-Knife").unwrap_or(());
+        let suffix = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(7)
+            .collect::<String>();
+        let target_git_dir = format!("/tmp/Spoon-Knife_{}", suffix);
 
         let repo_url = "https://github.com/octocat/Spoon-Knife";
         std::process::Command::new("git")
-            .args(&["clone", "--depth=3", repo_url])
+            .args(&["clone", "--depth=3", repo_url, &target_git_dir])
             .current_dir("/tmp")
             .output()?
             .status
@@ -63,7 +67,7 @@ mod tests {
             .as_result(true, format_err!("git command error"))?;
         std::process::Command::new("git")
             .args(&["reset", "--hard", "HEAD^^"])
-            .current_dir("/tmp/Spoon-Knife")
+            .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
@@ -74,27 +78,39 @@ mod tests {
                 "refs/remotes/origin/master",
                 "refs/remotes/origin/master~2",
             ])
-            .current_dir("/tmp/Spoon-Knife")
+            .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
             .as_result(true, format_err!("git command error"))?;
-        let sha1_before = std::process::Command::new("git")
-            .args(&["rev-parse", "origin/HEAD"])
-            .current_dir("/tmp/Spoon-Knife")
+        std::process::Command::new("git")
+            .args(&["gc", "--prune=now"])
+            .current_dir(&target_git_dir)
             .output()?
-            .stdout;
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
+        let sha1_before = String::from_utf8(
+            std::process::Command::new("git")
+                .args(&["rev-parse", "origin/HEAD"])
+                .current_dir(&target_git_dir)
+                .output()?
+                .stdout,
+        )?;
         let repo = Repository {
             uri: "https://github.com/octocat/Spoon-Knife".to_string(),
-            dir: "/tmp/Spoon-Knife".to_string(),
+            dir: target_git_dir.to_string(),
         };
         fetch_repository(&repo)?;
-        let sha1_after = std::process::Command::new("git")
-            .args(&["rev-parse", "origin/HEAD"])
-            .current_dir("/tmp/Spoon-Knife")
-            .output()?
-            .stdout;
+        let sha1_after = String::from_utf8(
+            std::process::Command::new("git")
+                .args(&["rev-parse", "origin/HEAD"])
+                .current_dir(&target_git_dir)
+                .output()?
+                .stdout,
+        )?;
         assert_ne!(sha1_before, sha1_after);
+        std::fs::remove_dir_all(&target_git_dir).unwrap_or(());
         Ok(())
     }
 }

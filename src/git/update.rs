@@ -35,7 +35,7 @@ pub fn update_repositorie_using_cached_statuss(statuses: &Vec<GitStatus>) -> Res
 
 fn update_repository_by_command<S: Into<String>>(dir: S) -> Result<Child, Error> {
     let child = std::process::Command::new("git")
-        .args(&["pull", "--no-stat"])
+        .args(&["pull", "--no-stat", "--recurse-submodules"])
         .current_dir(dir.into())
         .stdout(std::process::Stdio::null())
         .spawn()?;
