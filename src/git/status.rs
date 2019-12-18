@@ -107,24 +107,53 @@ mod tests {
 
     #[test]
     fn get_update_status_of_needed() -> Result<(), Error> {
+        use boolinator::Boolinator;
+        use rand::Rng;
         init();
+        let suffix = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(7)
+            .collect::<String>();
+        let target_git_dir = format!("/tmp/Spoon-Knife_{}", suffix);
+
+        let repo_url = "https://github.com/octocat/Spoon-Knife";
+        std::process::Command::new("git")
+            .args(&["clone", "--depth=3", repo_url, &target_git_dir])
+            .current_dir("/tmp")
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
+        std::process::Command::new("git")
+            .args(&["reset", "--hard", "HEAD^^"])
+            .current_dir(&target_git_dir)
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
         let repo = Repository {
             uri: "https://github.com/octocat/Spoon-Knife".to_string(),
-            dir: "tests/data/Spoon-Knife".to_string(),
+            dir: target_git_dir.to_string(),
         };
         let git_repo = git2::Repository::open(&repo.dir).unwrap();
         let n = get_update_status(&git_repo)?;
         assert_eq!(n, UpdateStatus::Required);
+        std::fs::remove_dir_all(&target_git_dir).unwrap_or(());
         Ok(())
     }
 
     #[test]
     fn get_update_status_of_updated() -> Result<(), Error> {
+        use rand::Rng;
         init();
-        std::fs::remove_dir_all("/tmp/Spoon-Knife").unwrap_or(());
+        let suffix = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(7)
+            .collect::<String>();
+        let target_git_dir = format!("/tmp/Spoon-Knife_{}", suffix);
         let repo = Repository {
             uri: "https://github.com/octocat/Spoon-Knife".to_string(),
-            dir: "/tmp/Spoon-Knife".to_string(),
+            dir: target_git_dir.to_string(),
         };
         let git_repo = git2::Repository::clone(&repo.uri, &repo.dir).unwrap();
         git_repo
@@ -137,6 +166,7 @@ mod tests {
             .unwrap();
         let n = get_update_status(&git_repo)?;
         assert_eq!(n, UpdateStatus::Already);
+        std::fs::remove_dir_all(&target_git_dir).unwrap_or(());
         Ok(())
     }
 }
