@@ -21,18 +21,40 @@ mod tests {
             .parse_filters("DEBUG")
             .try_init();
     }
+
     #[test]
     fn fetch_test() -> Result<(), Error> {
+        use boolinator::Boolinator;
+        use rand::Rng;
         init();
+        let suffix = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(7)
+            .collect::<String>();
+        let target_git_dir = format!("/tmp/hellogitworld_{}", suffix);
+
+        let repo_url = "https://github.com/githubtraining/hellogitworld";
+        std::process::Command::new("git")
+            .args(&["clone", repo_url, &target_git_dir])
+            .current_dir("/tmp")
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
+        std::process::Command::new("git")
+            .args(&["checkout", "bisect"])
+            .current_dir(&target_git_dir)
+            .output()?
+            .status
+            .success()
+            .as_result(true, format_err!("git command error"))?;
         let repo = Repository {
-            uri: "https://github.com/Shougo/defx.nvim.git".to_string(),
-            dir: "/home/osft/dotfiles/.vim/plugged/defx.nvim".to_string(),
+            uri: repo_url.to_string(),
+            dir: target_git_dir,
         };
         let git_repo = git2::Repository::open(&repo.dir)?;
         let branch = get_current_branch(&git_repo)?;
-        git_repo
-            .find_remote("origin")?
-            .fetch(&[&branch], None, None)?;
+        assert_eq!(branch, "bisect");
         Ok(())
     }
 }

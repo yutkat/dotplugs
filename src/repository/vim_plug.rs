@@ -84,6 +84,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn output_file_normal() -> Result<(), Error> {
         init();
         let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -94,6 +95,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn exists_vim_plug_normal() -> Result<(), Error> {
         init();
         let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

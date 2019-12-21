@@ -41,27 +41,3 @@ fn update_repository_by_command<S: Into<String>>(dir: S) -> Result<Child, Error>
         .spawn()?;
     Ok(child)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::repository::Repository;
-
-    fn init() {
-        let _ = pretty_env_logger::formatted_builder()
-            .is_test(true)
-            .parse_filters("DEBUG")
-            .try_init();
-    }
-
-    #[test]
-    fn update_repository_ok() -> Result<(), Error> {
-        init();
-        let repo = Repository {
-            uri: "https://github.com/fatih/vim-go.git".to_string(),
-            dir: "/home/osft/dotfiles/.vim/plugged/vim-go".to_string(),
-        };
-        update_repository(&repo)?;
-        Ok(())
-    }
-}
