@@ -1,5 +1,6 @@
 use crate::git;
 use crate::git::UpdateStatus;
+use colored::Colorize;
 use failure::Error;
 
 pub fn update() -> Result<(), Error> {
@@ -19,12 +20,13 @@ pub fn update_after_checking() -> Result<(), Error> {
 
     if is_continued_by_user()? {
         git::update_using_cached_status(&statuses)?;
+        eprintln!("{}", "Update successful".bold());
     }
     Ok(())
 }
 
 fn is_continued_by_user() -> Result<(bool), Error> {
-    println!("Do you want to continue? [Y/n]");
+    eprint!("{}", "Do you want to continue? [Y/n] ".bold());
     let mut answer = String::new();
     std::io::stdin().read_line(&mut answer)?;
     let len = answer.trim_end_matches(&['\r', '\n'][..]).len();

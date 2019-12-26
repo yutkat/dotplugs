@@ -24,6 +24,7 @@ pub fn update_repositorie_using_cached_statuss(statuses: &Vec<GitStatus>) -> Res
     for status in statuses {
         if status.status == UpdateStatus::Required {
             children.push(update_repository_by_command(&status.dir)?);
+            eprintln!("Update: {}", &status.uri);
         }
     }
 
