@@ -23,7 +23,7 @@ mod tests {
     }
 
     #[test]
-    fn fetch_test() -> Result<(), Error> {
+    fn get_current_branch_ok() -> Result<(), Error> {
         use boolinator::Boolinator;
         use rand::Rng;
         init();
