@@ -1,4 +1,4 @@
-use crate::repository::util::git_directory::GitDirectory;
+use crate::repository::git_directory::GitDirectory;
 use crate::repository::CanReposit;
 use crate::repository::Repositories;
 use failure::format_err;
