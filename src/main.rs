@@ -20,6 +20,7 @@ fn main() -> Result<(), Error> {
             }
             dotplugs::update_with_confirm()?
         }
+        ("viewer", _) => dotplugs::view()?,
         _ => {
             return Err(format_err!("subcommand not found"));
         }

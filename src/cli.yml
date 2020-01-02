@@ -25,3 +25,6 @@ subcommands:
                 long: yes
                 short: y
                 help: no confirm
+    - viewer:
+        about: show viewer
+        version: "0.1"
