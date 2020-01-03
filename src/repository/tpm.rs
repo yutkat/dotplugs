@@ -1,5 +1,5 @@
+use crate::repository::git_directory::GitDirectory;
 use crate::repository::CanReposit;
-use crate::repository::GitDirectory;
 use crate::repository::Repositories;
 use failure::Error;
 use std::process::Command;
