@@ -25,6 +25,12 @@ pub fn update() -> Result<(), Error> {
     Ok(())
 }
 
+pub fn view() -> Result<(), Error> {
+    init_logger();
+    subcommand::viewer::view()?;
+    Ok(())
+}
+
 pub fn update_with_confirm() -> Result<(), Error> {
     init_logger();
     subcommand::updater::update_after_checking()?;
