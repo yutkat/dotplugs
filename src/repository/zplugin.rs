@@ -1,5 +1,5 @@
+use crate::repository::git_directory::GitDirectory;
 use crate::repository::CanReposit;
-use crate::repository::GitDirectory;
 use crate::repository::Repositories;
 use failure::format_err;
 use failure::Error;
@@ -16,7 +16,9 @@ impl CanReposit for Zplugin {
 
 impl Zplugin {
     fn get_plugin_root_dir() -> Result<String, Error> {
-        let cmd = format!(r##"source ~/.zshrc && zplugin zstatus | grep 'Plugin directory' | cut -d' ' -f3 | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g'"##);
+        let cmd = format!(
+            r##"source ~/.zshrc && zplugin zstatus | grep 'Plugin directory' | cut -d' ' -f3 | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g'"##
+        );
         log::debug!("zplugin cmd: {}", cmd);
         let output = Command::new("zsh").arg("-c").arg(cmd).output()?;
         log::debug!("process exited with: {}", output.status);

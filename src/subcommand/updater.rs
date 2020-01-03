@@ -25,7 +25,7 @@ pub fn update_after_checking() -> Result<(), Error> {
     Ok(())
 }
 
-fn is_continued_by_user() -> Result<(bool), Error> {
+fn is_continued_by_user() -> Result<bool, Error> {
     eprint!("{}", "Do you want to continue? [Y/n] ".bold());
     let mut answer = String::new();
     std::io::stdin().read_line(&mut answer)?;
