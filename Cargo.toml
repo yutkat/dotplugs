@@ -22,6 +22,10 @@ termion = "1.5.3"
 tui = "0.8.0"
 rand = "0.7.2"
 prettytable-rs = "^0.8"
+graphql_client = "0.8.0"
+reqwest = "0.9"
+dotenv = "^0.13"
+envy = "^0.3"
 
 [dev-dependencies]
 boolinator = "2.4.0"
