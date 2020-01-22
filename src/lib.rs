@@ -1,5 +1,6 @@
 mod display;
 mod git;
+mod github;
 mod repository;
 mod subcommand;
 
