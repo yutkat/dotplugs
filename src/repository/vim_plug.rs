@@ -4,9 +4,8 @@ use crate::repository::Repositories;
 use failure::format_err;
 use failure::Error;
 
-pub struct VimPlug {
-    dir: String,
-}
+pub struct VimPlug;
+
 
 impl CanReposit for VimPlug {
     fn get_repositories() -> Result<Repositories, Error> {
@@ -17,6 +16,7 @@ impl CanReposit for VimPlug {
 
 impl VimPlug {
     fn get_plugin_root_dir() -> Result<String, Error> {
+        let dir = "~/.vim/plugged".to_string();
         log::debug!("vim-plug dir: {}", &dir);
         if !std::path::Path::new(&dir).exists() {
             return Err(format_err!("vim-plug dir not found {}", &dir));

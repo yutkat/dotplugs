@@ -3,7 +3,6 @@ use failure::Error;
 use failure::*;
 use graphql_client::*;
 use log::*;
-use prettytable::*;
 use serde::*;
 
 type URI = String;
@@ -21,7 +20,14 @@ struct Env {
     github_api_token: String,
 }
 
-fn parse_repo_name(repo_name: &str) -> Result<(&str, &str), Error> {
+fn create_info() -> Result<Vec<GitHubInfo>, Error> {
+    let search_query = "repo:yutakatay/dotfiles";
+    let response_data = download_repository_info(search_query)?;
+    let github_info = convert_github_info(response_data)?;
+    Ok(github_info)
+}
+
+fn parse_repo_name(repo_name: &str) -> Result<(&str, &str), failure::Error> {
     let mut parts = repo_name.split('/');
     match (parts.next(), parts.next()) {
         (Some(owner), Some(name)) => Ok((owner, name)),
@@ -29,16 +35,14 @@ fn parse_repo_name(repo_name: &str) -> Result<(&str, &str), Error> {
     }
 }
 
-fn create_info() -> Result<(), Error> {
+fn download_repository_info<S: Into<String>>(
+    search_query: S,
+) -> Result<repo_view::ResponseData, Error> {
     dotenv::dotenv().ok();
     let config: Env = envy::from_env().context("while reading from environment")?;
 
-    let repo = "yutakatay/dotfiles";
-    let (owner, name) = parse_repo_name(&repo)?;
-
     let q = RepoView::build_query(repo_view::Variables {
-        owner: owner.to_string(),
-        name: name.to_string(),
+        query: search_query.into().to_string(),
     });
 
     let client = reqwest::Client::new();
@@ -57,54 +61,48 @@ fn create_info() -> Result<(), Error> {
         for error in &errors {
             error!("{:?}", error);
         }
-        return Err("GraphQL error");
+        return Err(format_err!("GraphQL error"));
     }
 
-    let response_data: repo_view::ResponseData = response_body.data.expect("missing response data");
+    let response_data: repo_view::ResponseData = response_body
+        .data
+        .ok_or(format_err!("missing response data"))?;
+    return Ok(response_data);
+}
 
-    let stars = response_data
-        .repository
-        .as_ref()
-        .map(|repo| repo.stargazers.total_count)
-        .unwrap_or(0);
-
-    println!("{}/{} - 🌟 {}", owner, name, stars);
-
-    let mut table = prettytable::Table::new();
-
-    table.add_row(row!(b => "issue", "comments"));
-
-    for issue in &response_data
-        .repository
-        .expect("missing repository")
-        .issues
-        .nodes
-        .expect("issue nodes is null")
-    {
-        if let Some(issue) = issue {
-            table.add_row(row!(issue.title, issue.comments.total_count));
+fn convert_github_info(response_data: repo_view::ResponseData) -> Result<Vec<GitHubInfo>, Error> {
+    let repos = response_data.search.nodes.ok_or(format_err!("missing"))?;
+    let mut github_info = vec![];
+    let repo: &repo_view::RepoViewSearchNodes = repos.get(0).unwrap().as_ref().unwrap();
+    match repo {
+        repo_view::RepoViewSearchNodes::Repository(r) => {
+            let info = GitHubInfo {
+                uri: "".to_string(),
+                dir: "".to_string(),
+                stargazers: r.stargazers.total_count,
+            };
+            println!("{:?}", info);
+            github_info.push(info);
         }
+        _ => {}
     }
-
-    table.printstd();
-    Ok(())
+    Ok(github_info)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parse_repo_name_works() {
-        assert_eq!(
-            parse_repo_name("graphql-rust/graphql-client").unwrap(),
-            ("graphql-rust", "graphql-client")
-        );
-        assert!(parse_repo_name("abcd").is_err());
+    fn init() {
+        let _ = pretty_env_logger::formatted_builder()
+            .is_test(true)
+            .parse_filters("DEBUG")
+            .try_init();
     }
 
     #[test]
     fn create_info_works() -> Result<(), Error> {
-        create_info()
+        init();
+        let _ = create_info()?;
+        Ok(())
     }
 }
