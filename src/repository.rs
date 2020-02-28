@@ -1,6 +1,6 @@
 mod tpm;
 mod vim_plug;
-mod zplugin;
+mod zinit;
 
 use failure::Error;
 use serde::Deserialize;
@@ -21,7 +21,7 @@ trait CanReposit {
 pub fn new() -> Result<Repositories, Error> {
     let mut repos = vec![];
     repos.extend(vim_plug::VimPlug::get_repositories()?);
-    repos.extend(zplugin::Zplugin::get_repositories()?);
+    repos.extend(zinit::Zinit::get_repositories()?);
     repos.extend(tpm::Tpm::get_repositories()?);
     return Ok(repos);
 }
