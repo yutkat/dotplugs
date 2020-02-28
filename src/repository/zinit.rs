@@ -5,28 +5,28 @@ use failure::format_err;
 use failure::Error;
 use std::process::Command;
 
-pub struct Zplugin;
+pub struct Zinit;
 
-impl CanReposit for Zplugin {
+impl CanReposit for Zinit {
     fn get_repositories() -> Result<Repositories, Error> {
-        let path = Zplugin::get_plugin_root_dir()?;
+        let path = Zinit::get_plugin_root_dir()?;
         GitDirectory::get_repositories(path)
     }
 }
 
-impl Zplugin {
+impl Zinit {
     fn get_plugin_root_dir() -> Result<String, Error> {
         let cmd = format!(
-            r##"source ~/.zshrc && zplugin zstatus | grep 'Plugin directory' | cut -d' ' -f3 | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g'"##
+            r##"source ~/.zshrc && zinit zstatus | grep 'Plugin directory' | cut -d' ' -f3 | tr -d '\n' | sed 's/\x1b\[[0-9;]*m//g'"##
         );
-        log::debug!("zplugin cmd: {}", cmd);
+        log::debug!("zinit cmd: {}", cmd);
         let output = Command::new("zsh").arg("-c").arg(cmd).output()?;
         log::debug!("process exited with: {}", output.status);
         let stdout = output.stdout;
         let dir = String::from_utf8(stdout)?;
-        log::debug!("zplugin dir: {}", &dir);
+        log::debug!("zinit dir: {}", &dir);
         if !std::path::Path::new(&dir).exists() {
-            return Err(format_err!("zplugin dir not found {}", &dir));
+            return Err(format_err!("zinit dir not found {}", &dir));
         }
         Ok(dir)
     }
