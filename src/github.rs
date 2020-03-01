@@ -1,8 +1,7 @@
-mod repo_info;
+pub mod repo_info;
 
 #[derive(Debug)]
-struct GitHubInfo {
-    pub uri: String,
-    pub dir: String,
+pub struct GitHubInfo {
+    pub name_with_owner: String,
     pub stargazers: i64,
 }

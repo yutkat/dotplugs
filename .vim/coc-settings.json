@@ -5,6 +5,8 @@
     "graphql",
     "prettytable",
     "printstd",
+    "repo",
+    "repos",
     "reqwest",
     "structopt",
     "subcommand",
