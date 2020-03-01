@@ -2,6 +2,7 @@ mod tpm;
 mod vim_plug;
 mod zinit;
 
+use failure::format_err;
 use failure::Error;
 use serde::Deserialize;
 use serde::Serialize;
@@ -24,6 +25,16 @@ pub fn new() -> Result<Repositories, Error> {
     repos.extend(zinit::Zinit::get_repositories()?);
     repos.extend(tpm::Tpm::get_repositories()?);
     return Ok(repos);
+}
+
+impl Repository {
+    pub fn get_name_with_owner(&self) -> Result<String, Error> {
+        let mut parts = self.uri.trim_end_matches(".git").rsplit('/');
+        match (parts.next(), parts.next()) {
+            (Some(name), Some(owner)) => Ok(format!("{}/{}", owner, name)),
+            _ => Err(format_err!("wrong format for the repository name param (we expect something like facebook/graphql)"))
+        }
+    }
 }
 
 mod git_directory {
@@ -99,6 +110,13 @@ mod git_directory {
 mod tests {
     use super::*;
 
+    fn init() {
+        let _ = pretty_env_logger::formatted_builder()
+            .is_test(true)
+            .parse_filters("DEBUG")
+            .try_init();
+    }
+
     #[test]
     fn serde_test() -> Result<(), Error> {
         let data = r#"
@@ -122,6 +140,18 @@ mod tests {
             ]
         "#;
         serde_json::from_str::<Vec<Repository>>(data)?;
+        Ok(())
+    }
+
+    #[test]
+    fn convert_query_ok() -> Result<(), Error> {
+        init();
+        let r = Repository {
+            uri: "https://git::@github.com/kana/vim-operator-user.git".to_string(),
+            dir: "/home/test/.vim/plugged/vim-operator-user/".to_string(),
+        };
+        let s = r.get_name_with_owner()?;
+        assert_eq!(s, "kana/vim-operator-user");
         Ok(())
     }
 }

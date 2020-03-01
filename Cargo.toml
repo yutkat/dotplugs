@@ -26,6 +26,7 @@ graphql_client = "0.8.0"
 reqwest = "0.9"
 dotenv = "^0.13"
 envy = "^0.3"
+dirs = "2.0.2"
 
 [dev-dependencies]
 boolinator = "2.4.0"
