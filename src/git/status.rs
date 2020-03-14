@@ -4,8 +4,7 @@ use crate::git::GitStatus;
 use crate::git::UpdateStatus;
 use crate::repository::Repositories;
 use crate::repository::Repository;
-use failure::format_err;
-use failure::Error;
+use anyhow::{anyhow, Result};
 use futures::executor;
 use futures::task::SpawnExt;
 use log::{debug, warn};
@@ -14,7 +13,7 @@ use std::sync::{Arc, Mutex};
 use termion::clear;
 
 #[allow(dead_code)]
-pub fn get_status_sync(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
+pub fn get_status_sync(repos: &Repositories) -> Result<Vec<GitStatus>> {
     let mut git_statuses = Vec::<GitStatus>::new();
 
     for repo in repos.clone() {
@@ -29,7 +28,7 @@ pub fn get_status_sync(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
     Ok(git_statuses)
 }
 
-pub fn get_status_async(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
+pub fn get_status_async(repos: &Repositories) -> Result<Vec<GitStatus>> {
     let git_statuses = Arc::new(Mutex::new(Vec::<GitStatus>::new()));
     let pool = executor::ThreadPool::new()?;
     let mut futures = vec![];
@@ -49,12 +48,12 @@ pub fn get_status_async(repos: &Repositories) -> Result<Vec<GitStatus>, Error> {
         futures.push(pool.spawn_with_handle(future)?);
     }
     executor::block_on(futures::future::join_all(futures));
-    let g = Arc::try_unwrap(git_statuses).map_err(|e| format_err!("Async Error {:?}", e))?;
+    let g = Arc::try_unwrap(git_statuses).map_err(|e| anyhow!("Async Error {:?}", e))?;
     eprint!("\r{}", clear::CurrentLine);
     Ok(g.into_inner()?)
 }
 
-fn get_status_after_fetch(repo: &Repository) -> Result<GitStatus, Error> {
+fn get_status_after_fetch(repo: &Repository) -> Result<GitStatus> {
     let git_repo = match git2::Repository::open(&repo.dir) {
         Ok(x) => x,
         Err(_) => {
@@ -75,7 +74,7 @@ fn get_status_after_fetch(repo: &Repository) -> Result<GitStatus, Error> {
     })
 }
 
-fn get_update_status(repo: &git2::Repository) -> Result<UpdateStatus, Error> {
+fn get_update_status(repo: &git2::Repository) -> Result<UpdateStatus> {
     let branch_name = branch::get_current_branch(&repo)?;
     let remote_branch_name = format!("origin/{}", &branch_name);
 
@@ -106,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn get_update_status_of_needed() -> Result<(), Error> {
+    fn get_update_status_of_needed() -> Result<()> {
         use boolinator::Boolinator;
         use rand::Rng;
         init();
@@ -143,7 +142,7 @@ mod tests {
     }
 
     #[test]
-    fn get_update_status_of_updated() -> Result<(), Error> {
+    fn get_update_status_of_updated() -> Result<()> {
         use rand::Rng;
         init();
         let suffix = rand::thread_rng()

@@ -1,15 +1,15 @@
 use crate::git;
 use crate::git::UpdateStatus;
+use anyhow::Result;
 use colored::Colorize;
-use failure::Error;
 
-pub fn update() -> Result<(), Error> {
+pub fn update() -> Result<()> {
     let repos = crate::repository::new()?;
     git::update(&repos)?;
     Ok(())
 }
 
-pub fn update_after_checking() -> Result<(), Error> {
+pub fn update_after_checking() -> Result<()> {
     let repos = crate::repository::new()?;
     let statuses = crate::git::get_status(&repos)?;
     crate::display::display(&statuses);
@@ -25,7 +25,7 @@ pub fn update_after_checking() -> Result<(), Error> {
     Ok(())
 }
 
-fn is_continued_by_user() -> Result<bool, Error> {
+fn is_continued_by_user() -> Result<bool> {
     eprint!("{}", "Do you want to continue? [Y/n] ".bold());
     let mut answer = String::new();
     std::io::stdin().read_line(&mut answer)?;

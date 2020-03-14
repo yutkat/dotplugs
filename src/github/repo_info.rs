@@ -1,7 +1,6 @@
 use super::GitHubInfo;
 use crate::repository::Repository;
-use failure::Error;
-use failure::*;
+use anyhow::{anyhow, Context, Result};
 use graphql_client::*;
 use log::*;
 use serde::*;
@@ -19,7 +18,7 @@ struct Env {
     github_api_token: String,
 }
 
-pub fn create_info(repos: &Vec<Repository>) -> Result<Vec<GitHubInfo>, Error> {
+pub fn create_info(repos: &Vec<Repository>) -> Result<Vec<GitHubInfo>> {
     let search_query = convert_query(repos)?;
     let mut github_info: Vec<GitHubInfo> = vec![];
     let mut next = true;
@@ -32,7 +31,7 @@ pub fn create_info(repos: &Vec<Repository>) -> Result<Vec<GitHubInfo>, Error> {
     Ok(github_info)
 }
 
-fn convert_query(repos: &Vec<Repository>) -> Result<String, Error> {
+fn convert_query(repos: &Vec<Repository>) -> Result<String> {
     let query: String = repos
         .iter()
         .map(|r| r.get_name_with_owner())
@@ -42,9 +41,7 @@ fn convert_query(repos: &Vec<Repository>) -> Result<String, Error> {
     Ok(query)
 }
 
-fn download_repository_info<S: Into<String>>(
-    search_query: S,
-) -> Result<repo_view::ResponseData, Error> {
+fn download_repository_info<S: Into<String>>(search_query: S) -> Result<repo_view::ResponseData> {
     dotenv::dotenv().ok();
     let config: Env = envy::from_env().context("while reading from environment")?;
 
@@ -69,21 +66,20 @@ fn download_repository_info<S: Into<String>>(
         for error in &errors {
             error!("{:?}", error);
         }
-        return Err(format_err!("GraphQL error"));
+        return Err(anyhow!("GraphQL error"));
     }
 
-    let response_data: repo_view::ResponseData = response_body
-        .data
-        .ok_or(format_err!("missing response data"))?;
+    let response_data: repo_view::ResponseData =
+        response_body.data.ok_or(anyhow!("missing response data"))?;
     Ok(response_data)
 }
 
-fn convert_github_info(response_data: &repo_view::ResponseData) -> Result<Vec<GitHubInfo>, Error> {
+fn convert_github_info(response_data: &repo_view::ResponseData) -> Result<Vec<GitHubInfo>> {
     let repos = response_data
         .search
         .nodes
         .as_ref()
-        .ok_or(format_err!("missing"))?;
+        .ok_or(anyhow!("missing"))?;
     let github_info: Vec<GitHubInfo> = repos
         .into_iter()
         .map(|repo| match repo.as_ref().unwrap() {
@@ -98,7 +94,7 @@ fn convert_github_info(response_data: &repo_view::ResponseData) -> Result<Vec<Gi
     Ok(github_info)
 }
 
-fn continue_search(response_data: &repo_view::ResponseData) -> Result<bool, Error> {
+fn continue_search(response_data: &repo_view::ResponseData) -> Result<bool> {
     let has_next_page: bool = response_data.search.page_info.has_next_page;
     Ok(has_next_page)
 }
@@ -114,7 +110,7 @@ mod tests {
     }
 
     #[test]
-    fn create_info_works() -> Result<(), Error> {
+    fn create_info_works() -> Result<()> {
         init();
 
         let v = vec![

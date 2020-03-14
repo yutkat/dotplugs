@@ -2,7 +2,7 @@ mod event;
 
 use std::io;
 
-use failure::Error;
+use anyhow::Result;
 use termion::event::Key;
 use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
@@ -20,7 +20,7 @@ struct App {
     selected: usize,
 }
 
-pub fn display(header: &Vec<&str>, table: &prettytable::Table) -> Result<(), Error> {
+pub fn display(header: &Vec<&str>, table: &prettytable::Table) -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
