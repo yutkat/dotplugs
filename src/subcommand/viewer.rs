@@ -1,6 +1,5 @@
 mod table_tui;
 
-use failure::format_err;
 use failure::Error;
 use prettytable::{cell, row, Table};
 
@@ -12,7 +11,7 @@ pub fn view() -> Result<(), Error> {
     let header = vec!["uri", "star"];
     for g in &github_info {
         table.add_row(row![g.name_with_owner]);
-        table.add_row(row![g.star]);
+        table.add_row(row![g.stargazers.to_string()]);
     }
 
     table_tui::display(&header, &table)?;
