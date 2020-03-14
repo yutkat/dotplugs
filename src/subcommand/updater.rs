@@ -36,5 +36,5 @@ fn is_continued_by_user() -> Result<bool, Error> {
     }
 
     println!("Canceled");
-    return Ok(false);
+    Ok(false)
 }

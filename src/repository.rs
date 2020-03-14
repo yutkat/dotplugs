@@ -24,7 +24,7 @@ pub fn new() -> Result<Repositories, Error> {
     repos.extend(vim_plug::VimPlug::get_repositories()?);
     repos.extend(zinit::Zinit::get_repositories()?);
     repos.extend(tpm::Tpm::get_repositories()?);
-    return Ok(repos);
+    Ok(repos)
 }
 
 impl Repository {
