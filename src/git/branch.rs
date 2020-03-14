@@ -1,11 +1,10 @@
-use failure::format_err;
-use failure::Error;
+use anyhow::{anyhow, Result};
 
-pub fn get_current_branch(repo: &git2::Repository) -> Result<String, Error> {
+pub fn get_current_branch(repo: &git2::Repository) -> Result<String> {
     let mut branches = repo.branches(None)?;
     let branch = branches
         .find(|b| b.as_ref().unwrap().0.is_head())
-        .ok_or(format_err!("There is no branch corresponding to HEAD"))??
+        .ok_or(anyhow!("There is no branch corresponding to HEAD"))??
         .0;
     Ok(branch.name()?.unwrap_or("master").to_string())
 }
@@ -23,7 +22,7 @@ mod tests {
     }
 
     #[test]
-    fn get_current_branch_ok() -> Result<(), Error> {
+    fn get_current_branch_ok() -> Result<()> {
         use boolinator::Boolinator;
         use rand::Rng;
         init();
@@ -40,14 +39,14 @@ mod tests {
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&["checkout", "bisect"])
             .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         let repo = Repository {
             uri: repo_url.to_string(),
             dir: target_git_dir,

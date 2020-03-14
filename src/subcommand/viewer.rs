@@ -1,9 +1,9 @@
 mod table_tui;
 
-use failure::Error;
+use anyhow::Result;
 use prettytable::{cell, row, Table};
 
-pub fn view() -> Result<(), Error> {
+pub fn view() -> Result<()> {
     let repos = crate::repository::new()?;
     let github_info = crate::github::repo_info::create_info(&repos)?;
 
