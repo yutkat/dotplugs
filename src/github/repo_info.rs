@@ -21,11 +21,14 @@ struct Env {
 pub fn create_info(repos: &Vec<Repository>) -> Result<Vec<GitHubInfo>> {
     let search_query = convert_query(repos)?;
     let mut github_info: Vec<GitHubInfo> = vec![];
-    let mut next = true;
-    while next {
-        let response_data = download_repository_info(&search_query)?;
-        next = continue_search(&response_data)?;
+    let mut next_cursor: Option<String> = None;
+    loop {
+        let response_data = download_repository_info(&search_query, &next_cursor)?;
         github_info.extend(convert_github_info(&response_data)?);
+        next_cursor = continue_search(&response_data)?;
+        if next_cursor.is_none() {
+            break;
+        }
     }
     debug!("{:?}", github_info);
     Ok(github_info)
@@ -41,13 +44,16 @@ fn convert_query(repos: &Vec<Repository>) -> Result<String> {
     Ok(query)
 }
 
-fn download_repository_info<S: Into<String>>(search_query: S) -> Result<repo_view::ResponseData> {
+fn download_repository_info<S: Into<String>>(
+    search_query: S,
+    after: &Option<String>,
+) -> Result<repo_view::ResponseData> {
     dotenv::dotenv().ok();
     let config: Env = envy::from_env().context("while reading from environment")?;
 
     let q = RepoView::build_query(repo_view::Variables {
         query: search_query.into(),
-        first: 100,
+        after: after.as_ref().cloned(),
     });
 
     let client = reqwest::Client::new();
@@ -94,9 +100,13 @@ fn convert_github_info(response_data: &repo_view::ResponseData) -> Result<Vec<Gi
     Ok(github_info)
 }
 
-fn continue_search(response_data: &repo_view::ResponseData) -> Result<bool> {
+fn continue_search(response_data: &repo_view::ResponseData) -> Result<Option<String>> {
     let has_next_page: bool = response_data.search.page_info.has_next_page;
-    Ok(has_next_page)
+    if !has_next_page {
+        return Ok(None);
+    }
+    let next_cursor = response_data.search.page_info.end_cursor.clone();
+    Ok(next_cursor)
 }
 
 #[cfg(test)]

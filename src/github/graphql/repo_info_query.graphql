@@ -1,5 +1,5 @@
-query RepoView($query: String!, $first: Int!) {
-  search(query: $query, type: REPOSITORY, first: $first) {
+query RepoView($query: String!, $after: String) {
+  search(query: $query, type: REPOSITORY, after: $after, first: 100) {
     nodes {
       __typename
       ... on Repository {
@@ -11,6 +11,7 @@ query RepoView($query: String!, $first: Int!) {
     }
     pageInfo {
       hasNextPage
+      endCursor
     }
   }
 }
