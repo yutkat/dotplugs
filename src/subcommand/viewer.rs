@@ -10,8 +10,7 @@ pub fn view() -> Result<()> {
     let mut table = Table::new();
     let header = vec!["uri", "star"];
     for g in &github_info {
-        table.add_row(row![g.name_with_owner]);
-        table.add_row(row![g.stargazers.to_string()]);
+        table.add_row(row![g.name_with_owner, g.stargazers.to_string()]);
     }
 
     table_tui::display(&header, &table)?;
