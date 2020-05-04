@@ -4,13 +4,19 @@ use std::io;
 
 use self::event::{Event, Events};
 use anyhow::Result;
-use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use std::io::Stdout;
+use termion::{
+    event::Key,
+    input::MouseTerminal,
+    raw::{IntoRawMode, RawTerminal},
+    screen::AlternateScreen,
+};
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Row, Table, TableState},
-    Terminal,
+    Frame, Terminal,
 };
 
 struct StatefulTable {
@@ -67,32 +73,7 @@ pub fn display(header: &Vec<&str>, table: &prettytable::Table) -> Result<()> {
     // Input
     loop {
         terminal.draw(|mut f| {
-            let rects = Layout::default()
-                .constraints([Constraint::Percentage(100)].as_ref())
-                .margin(5)
-                .split(f.size());
-
-            let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
-            let normal_style = Style::default().fg(Color::White);
-
-            let rows = table.items.row_iter().enumerate().map(|(_, item)| {
-                let iter = item
-                    .iter()
-                    .map(|m| m.get_content())
-                    .collect::<Vec<_>>()
-                    .into_iter();
-                Row::StyledData(iter, normal_style)
-            });
-            let t = Table::new(header.iter(), rows)
-                .block(Block::default().borders(Borders::ALL).title("Table"))
-                .highlight_style(selected_style)
-                .highlight_symbol(">> ")
-                .widths(&[
-                    Constraint::Percentage(50),
-                    Constraint::Length(30),
-                    Constraint::Max(10),
-                ]);
-            f.render_stateful_widget(t, rects[0], &mut table.state);
+            render_table(&mut f, &header, &mut table);
         })?;
 
         match events.next()? {
@@ -116,4 +97,37 @@ pub fn display(header: &Vec<&str>, table: &prettytable::Table) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn render_table(
+    f: &mut Frame<TermionBackend<AlternateScreen<MouseTerminal<RawTerminal<Stdout>>>>>,
+    header: &Vec<&str>,
+    table: &mut StatefulTable,
+) {
+    let rects = Layout::default()
+        .constraints([Constraint::Percentage(100)].as_ref())
+        .margin(5)
+        .split(f.size());
+
+    let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
+    let normal_style = Style::default().fg(Color::White);
+
+    let rows = table.items.row_iter().enumerate().map(|(_, item)| {
+        let iter = item
+            .iter()
+            .map(|m| m.get_content())
+            .collect::<Vec<_>>()
+            .into_iter();
+        Row::StyledData(iter, normal_style)
+    });
+    let t = Table::new(header.iter(), rows)
+        .block(Block::default().borders(Borders::ALL).title("Table"))
+        .highlight_style(selected_style)
+        .highlight_symbol(">> ")
+        .widths(&[
+            Constraint::Percentage(50),
+            Constraint::Length(30),
+            Constraint::Max(10),
+        ]);
+    f.render_stateful_widget(t, rects[0], &mut table.state);
 }
