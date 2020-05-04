@@ -19,7 +19,7 @@ lazy_static = "1.4"
 colored = "1.8"
 futures = { version = "0.3.1", features = ["thread-pool"] }
 termion = "1.5.3"
-tui = "0.8.0"
+tui = "0.9.1"
 rand = "0.7.2"
 prettytable-rs = "^0.8"
 graphql_client = "0.8.0"
