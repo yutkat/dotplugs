@@ -1,5 +1,5 @@
+use anyhow::Result;
 use clap::{load_yaml, App};
-use failure::Error;
 use lazy_static::lazy_static;
 use yaml_rust::Yaml;
 
@@ -11,11 +11,9 @@ lazy_static! {
     };
 }
 
-pub fn load() -> Result<clap::ArgMatches<'static>, Error> {
-    match ARGS_MATCHES.occurrences_of("verbose") {
-        0 => {}
-        _ => std::env::set_var("RUST_LOG", "debug"),
+pub fn load() -> Result<clap::ArgMatches<'static>> {
+    if ARGS_MATCHES.occurrences_of("verbose") != 0 {
+        std::env::set_var("RUST_LOG", "debug");
     }
-
     Ok(ARGS_MATCHES.clone())
 }

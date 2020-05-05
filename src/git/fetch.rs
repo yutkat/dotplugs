@@ -1,9 +1,9 @@
 use crate::git::branch;
 use crate::repository::Repository;
-use failure::Error;
+use anyhow::Result;
 use log::warn;
 
-pub fn fetch_repository(repo: &Repository) -> Result<(), Error> {
+pub fn fetch_repository(repo: &Repository) -> Result<()> {
     // libgit2 does not implement shallow fetch
     // https://github.com/libgit2/libgit2/issues/3058
     fetch_repository_by_command(repo)?;
@@ -11,7 +11,7 @@ pub fn fetch_repository(repo: &Repository) -> Result<(), Error> {
 }
 
 #[allow(dead_code)]
-fn fetch_repository_by_git2rs(repo: &Repository) -> Result<(), Error> {
+fn fetch_repository_by_git2rs(repo: &Repository) -> Result<()> {
     let git_repo = git2::Repository::open(&repo.dir)?;
     let branch = branch::get_current_branch(&git_repo)?;
     git_repo.find_remote("origin")?.fetch(
@@ -22,7 +22,7 @@ fn fetch_repository_by_git2rs(repo: &Repository) -> Result<(), Error> {
     Ok(())
 }
 
-fn fetch_repository_by_command(repo: &Repository) -> Result<(), Error> {
+fn fetch_repository_by_command(repo: &Repository) -> Result<()> {
     let output = std::process::Command::new("git")
         .args(&["fetch", "-a"])
         .current_dir(&repo.dir)
@@ -37,7 +37,7 @@ fn fetch_repository_by_command(repo: &Repository) -> Result<(), Error> {
 mod tests {
     use super::*;
     use crate::repository::Repository;
-    use failure::format_err;
+    use anyhow::{anyhow, Result};
 
     fn init() {
         let _ = pretty_env_logger::formatted_builder()
@@ -47,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn fetch_repository_status_for_shallow_ok() -> Result<(), Error> {
+    fn fetch_repository_status_for_shallow_ok() -> Result<()> {
         use boolinator::Boolinator;
         use rand::Rng;
         init();
@@ -64,14 +64,14 @@ mod tests {
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&["reset", "--hard", "HEAD^^"])
             .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&[
                 "update-ref",
@@ -82,14 +82,14 @@ mod tests {
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&["gc", "--prune=now"])
             .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         let sha1_before = String::from_utf8(
             std::process::Command::new("git")
                 .args(&["rev-parse", "origin/HEAD"])

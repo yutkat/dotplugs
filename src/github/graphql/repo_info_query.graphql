@@ -1,0 +1,18 @@
+query RepoView($query: String!, $after: String) {
+  search(query: $query, type: REPOSITORY, after: $after, first: 100) {
+    nodes {
+      __typename
+      ... on Repository {
+        nameWithOwner
+        stargazers {
+          totalCount
+        }
+        updatedAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

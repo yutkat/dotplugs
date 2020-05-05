@@ -13,15 +13,21 @@ serde_json = "1.0"
 clap =  {version = "2", features = ["yaml"]}
 url = "1.7"
 git2 = "0.10.1"
-failure = "0.1.5"
+anyhow = "1.0.26"
 yaml-rust = "0.3.5"
 lazy_static = "1.4"
 colored = "1.8"
 futures = { version = "0.3.1", features = ["thread-pool"] }
 termion = "1.5.3"
-tui = "0.8.0"
+tui = "0.9.1"
 rand = "0.7.2"
 prettytable-rs = "^0.8"
+graphql_client = "0.8.0"
+reqwest = "0.9"
+dotenv = "^0.13"
+envy = "^0.3"
+dirs = "2.0.2"
+chrono = "0.4"
 
 [dev-dependencies]
 boolinator = "2.4.0"

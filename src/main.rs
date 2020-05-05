@@ -1,10 +1,9 @@
 mod args;
 
+use anyhow::{anyhow, Result};
 use dotplugs;
-use failure::format_err;
-use failure::Error;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     let matches = args::load()?;
     match matches.subcommand() {
         ("check", Some(sub_m)) => {
@@ -15,14 +14,14 @@ fn main() -> Result<(), Error> {
         }
         ("update", Some(sub_m)) => {
             if sub_m.is_present("yes") {
-                // Todo add a force function
                 dotplugs::update()?
+            } else {
+                dotplugs::update_with_confirm()?
             }
-            dotplugs::update_with_confirm()?
         }
         ("viewer", _) => dotplugs::view()?,
         _ => {
-            return Err(format_err!("subcommand not found"));
+            return Err(anyhow!("subcommand not found"));
         }
     }
     Ok(())

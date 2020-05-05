@@ -1,8 +1,8 @@
 mod tpm;
 mod vim_plug;
-mod zplugin;
+mod zinit;
 
-use failure::Error;
+use anyhow::{anyhow, Result};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -15,29 +15,38 @@ pub struct Repository {
 pub type Repositories = Vec<Repository>;
 
 trait CanReposit {
-    fn get_repositories() -> Result<Repositories, Error>;
+    fn get_repositories() -> Result<Repositories>;
 }
 
-pub fn new() -> Result<Repositories, Error> {
+pub fn new() -> Result<Repositories> {
     let mut repos = vec![];
     repos.extend(vim_plug::VimPlug::get_repositories()?);
-    repos.extend(zplugin::Zplugin::get_repositories()?);
+    repos.extend(zinit::Zinit::get_repositories()?);
     repos.extend(tpm::Tpm::get_repositories()?);
-    return Ok(repos);
+    Ok(repos)
+}
+
+impl Repository {
+    pub fn get_name_with_owner(&self) -> Result<String> {
+        let mut parts = self.uri.trim_end_matches(".git").rsplit('/');
+        match (parts.next(), parts.next()) {
+            (Some(name), Some(owner)) => Ok(format!("{}/{}", owner, name)),
+            _ => Err(anyhow!("wrong format for the repository name param (we expect something like facebook/graphql)"))
+        }
+    }
 }
 
 mod git_directory {
     use crate::repository::Repositories;
     use crate::repository::Repository;
-    use failure::format_err;
-    use failure::Error;
+    use anyhow::{anyhow, Result};
     use std::path::Path;
     use std::process::Command;
 
     pub struct GitDirectory;
 
     impl GitDirectory {
-        pub fn get_repositories<S: Into<String>>(path: S) -> Result<Repositories, Error> {
+        pub fn get_repositories<S: Into<String>>(path: S) -> Result<Repositories> {
             let p = path.into();
             log::debug!("git repository root {}", p);
             if !GitDirectory::exists_plugin_manager(&p)? {
@@ -46,7 +55,7 @@ mod git_directory {
             GitDirectory::create_repositories_struct(&p)
         }
 
-        fn exists_plugin_manager<S: Into<String>>(path: S) -> Result<bool, Error> {
+        fn exists_plugin_manager<S: Into<String>>(path: S) -> Result<bool> {
             let path = path.into();
             if path.is_empty() {
                 return Ok(false);
@@ -58,10 +67,10 @@ mod git_directory {
             Ok(true)
         }
 
-        fn get_url<P: AsRef<Path>>(path: P) -> Result<String, Error> {
+        fn get_url<P: AsRef<Path>>(path: P) -> Result<String> {
             let cmd = format!(
                 r##"cd {} && git config --get remote.origin.url"##,
-                path.as_ref().to_str().ok_or(format_err!("convert error"))?
+                path.as_ref().to_str().ok_or(anyhow!("convert error"))?
             );
             log::debug!("command to get tpm remote origin: {}", cmd);
             let output = Command::new("sh").arg("-c").arg(cmd).output()?;
@@ -73,7 +82,7 @@ mod git_directory {
             Ok(url)
         }
 
-        fn create_repositories_struct<S: Into<String>>(path: S) -> Result<Repositories, Error> {
+        fn create_repositories_struct<S: Into<String>>(path: S) -> Result<Repositories> {
             let mut r = vec![];
             for entry in std::fs::read_dir(path.into())? {
                 let entry = entry?;
@@ -82,10 +91,7 @@ mod git_directory {
                     let url = GitDirectory::get_url(&path)?;
                     let repo = Repository {
                         uri: url,
-                        dir: path
-                            .to_str()
-                            .ok_or(format_err!("convert error"))?
-                            .to_string(),
+                        dir: path.to_str().ok_or(anyhow!("convert error"))?.to_string(),
                     };
                     r.push(repo);
                 }
@@ -99,8 +105,15 @@ mod git_directory {
 mod tests {
     use super::*;
 
+    fn init() {
+        let _ = pretty_env_logger::formatted_builder()
+            .is_test(true)
+            .parse_filters("DEBUG")
+            .try_init();
+    }
+
     #[test]
-    fn serde_test() -> Result<(), Error> {
+    fn serde_test() -> Result<()> {
         let data = r#"
             [
                 {
@@ -122,6 +135,18 @@ mod tests {
             ]
         "#;
         serde_json::from_str::<Vec<Repository>>(data)?;
+        Ok(())
+    }
+
+    #[test]
+    fn convert_query_ok() -> Result<()> {
+        init();
+        let r = Repository {
+            uri: "https://git::@github.com/kana/vim-operator-user.git".to_string(),
+            dir: "/home/test/.vim/plugged/vim-operator-user/".to_string(),
+        };
+        let s = r.get_name_with_owner()?;
+        assert_eq!(s, "kana/vim-operator-user");
         Ok(())
     }
 }
