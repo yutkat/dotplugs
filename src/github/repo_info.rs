@@ -1,9 +1,12 @@
 use super::GitHubInfo;
 use crate::repository::Repository;
 use anyhow::{anyhow, Context, Result};
+use chrono::NaiveDateTime;
 use graphql_client::*;
 use log::*;
 use serde::*;
+
+type DateTime = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -92,6 +95,11 @@ fn convert_github_info(response_data: &repo_view::ResponseData) -> Result<Vec<Gi
             repo_view::RepoViewSearchNodes::Repository(r) => Some(GitHubInfo {
                 name_with_owner: r.name_with_owner.to_string(),
                 stargazers: r.stargazers.total_count,
+                updated_at: NaiveDateTime::parse_from_str(
+                    r.updated_at.as_ref(),
+                    "%Y-%m-%dT%H:%M:%SZ",
+                )
+                .unwrap_or(NaiveDateTime::from_timestamp(0, 0)),
             }),
             _ => None,
         })
