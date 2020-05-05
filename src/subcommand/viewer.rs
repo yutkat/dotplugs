@@ -8,9 +8,13 @@ pub fn view() -> Result<()> {
     let github_info = crate::github::repo_info::create_info(&repos)?;
 
     let mut table = Table::new();
-    let header = vec!["uri", "star"];
+    let header = vec!["uri", "star", "updated"];
     for g in &github_info {
-        table.add_row(row![g.name_with_owner, g.stargazers.to_string()]);
+        table.add_row(row![
+            g.name_with_owner,
+            g.stargazers.to_string(),
+            g.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string()
+        ]);
     }
 
     table_tui::display(&header, &table)?;

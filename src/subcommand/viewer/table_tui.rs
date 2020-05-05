@@ -127,7 +127,7 @@ fn render_table(
         .widths(&[
             Constraint::Percentage(50),
             Constraint::Length(30),
-            Constraint::Max(10),
+            Constraint::Max(20),
         ]);
     f.render_stateful_widget(t, rects[0], &mut table.state);
 }
