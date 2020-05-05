@@ -128,6 +128,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn create_info_works() -> Result<()> {
         init();
 

@@ -45,5 +45,5 @@ fn init_logger() {
     } else {
         builder.parse_filters("info");
     }
-    builder.target(Target::Stderr).init()
+    builder.target(Target::Stderr).init();
 }

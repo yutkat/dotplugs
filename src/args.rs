@@ -12,10 +12,8 @@ lazy_static! {
 }
 
 pub fn load() -> Result<clap::ArgMatches<'static>> {
-    match ARGS_MATCHES.occurrences_of("verbose") {
-        0 => {}
-        _ => std::env::set_var("RUST_LOG", "debug"),
+    if ARGS_MATCHES.occurrences_of("verbose") != 0 {
+        std::env::set_var("RUST_LOG", "debug");
     }
-
     Ok(ARGS_MATCHES.clone())
 }

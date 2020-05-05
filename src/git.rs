@@ -21,5 +21,4 @@ pub struct GitStatus {
 }
 
 pub use status::get_status_async as get_status;
-pub use update::update_repositorie_using_cached_statuss as update_using_cached_status;
 pub use update::update_repositories as update;

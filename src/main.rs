@@ -14,10 +14,10 @@ fn main() -> Result<()> {
         }
         ("update", Some(sub_m)) => {
             if sub_m.is_present("yes") {
-                // Todo add a force function
                 dotplugs::update()?
+            } else {
+                dotplugs::update_with_confirm()?
             }
-            dotplugs::update_with_confirm()?
         }
         ("viewer", _) => dotplugs::view()?,
         _ => {

@@ -1,25 +1,9 @@
 use crate::git::GitStatus;
 use crate::git::UpdateStatus;
-use crate::repository::Repositories;
-use crate::repository::Repository;
 use anyhow::Result;
 use std::process::Child;
 
-pub fn update_repository(repo: &Repository) -> Result<()> {
-    // libgit2 does not implement shallow fetch
-    update_repository_by_command(&repo.dir)?;
-
-    Ok(())
-}
-
-pub fn update_repositories(repos: &Repositories) -> Result<()> {
-    for repo in repos {
-        update_repository(repo)?;
-    }
-    Ok(())
-}
-
-pub fn update_repositorie_using_cached_statuss(statuses: &Vec<GitStatus>) -> Result<()> {
+pub fn update_repositories(statuses: &Vec<GitStatus>) -> Result<()> {
     let mut children = vec![];
     for status in statuses {
         if status.status == UpdateStatus::Required {
