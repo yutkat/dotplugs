@@ -96,6 +96,7 @@ mod tests {
     use super::*;
     use crate::repository::Repository;
     extern crate pretty_env_logger;
+    use anyhow::{anyhow, Result};
 
     fn init() {
         let _ = pretty_env_logger::formatted_builder()
@@ -122,14 +123,14 @@ mod tests {
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&["reset", "--hard", "HEAD^^"])
             .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         let repo = Repository {
             uri: "https://github.com/octocat/Spoon-Knife".to_string(),
             dir: target_git_dir.to_string(),

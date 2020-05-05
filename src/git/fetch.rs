@@ -37,7 +37,7 @@ fn fetch_repository_by_command(repo: &Repository) -> Result<()> {
 mod tests {
     use super::*;
     use crate::repository::Repository;
-    use failure::format_err;
+    use anyhow::{anyhow, Result};
 
     fn init() {
         let _ = pretty_env_logger::formatted_builder()
@@ -64,14 +64,14 @@ mod tests {
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&["reset", "--hard", "HEAD^^"])
             .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&[
                 "update-ref",
@@ -82,14 +82,14 @@ mod tests {
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         std::process::Command::new("git")
             .args(&["gc", "--prune=now"])
             .current_dir(&target_git_dir)
             .output()?
             .status
             .success()
-            .as_result(true, format_err!("git command error"))?;
+            .as_result(true, anyhow!("git command error"))?;
         let sha1_before = String::from_utf8(
             std::process::Command::new("git")
                 .args(&["rev-parse", "origin/HEAD"])

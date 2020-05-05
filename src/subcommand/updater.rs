@@ -5,7 +5,15 @@ use colored::Colorize;
 
 pub fn update() -> Result<()> {
     let repos = crate::repository::new()?;
-    git::update(&repos)?;
+    let statuses = crate::git::get_status(&repos)?;
+    crate::display::display(&statuses);
+
+    if statuses.iter().all(|x| x.status != UpdateStatus::Required) {
+        return Ok(());
+    }
+
+    git::update(&statuses)?;
+    eprintln!("{}", "Update successful".bold());
     Ok(())
 }
 
@@ -19,7 +27,7 @@ pub fn update_after_checking() -> Result<()> {
     }
 
     if is_continued_by_user()? {
-        git::update_using_cached_status(&statuses)?;
+        git::update(&statuses)?;
         eprintln!("{}", "Update successful".bold());
     }
     Ok(())
